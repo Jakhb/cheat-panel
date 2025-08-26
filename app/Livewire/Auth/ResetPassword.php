@@ -18,7 +18,7 @@ class ResetPassword extends Component
     #[Locked]
     public string $token = '';
 
-    public string $email = '';
+    public string $username = '';
 
     public string $password = '';
 
@@ -31,7 +31,7 @@ class ResetPassword extends Component
     {
         $this->token = $token;
 
-        $this->email = request()->string('email')->value();
+        $this->username = request()->string('username')->value();
     }
 
     /**
@@ -41,7 +41,7 @@ class ResetPassword extends Component
     {
         $this->validate([
             'token' => ['required'],
-            'email' => ['required', 'string', 'email'],
+            'username' => ['required', 'string'],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -49,11 +49,11 @@ class ResetPassword extends Component
         // will update the password on an actual user model and persist it to the
         // database. Otherwise we will parse the error and return the response.
         $status = Password::reset(
-            $this->only('email', 'password', 'password_confirmation', 'token'),
+            $this->only('username', 'password', 'password_confirmation', 'token'),
             function ($user) {
                 $user->forceFill([
                     'password' => Hash::make($this->password),
-                    'remember_token' => Str::random(60),
+                    // 'remember_token' => Str::random(60),
                 ])->save();
 
                 event(new PasswordReset($user));
@@ -64,7 +64,7 @@ class ResetPassword extends Component
         // the application's home authenticated view. If there is an error we can
         // redirect them back to where they came from with their error message.
         if ($status != Password::PasswordReset) {
-            $this->addError('email', __($status));
+            $this->addError('username', __($status));
 
             return;
         }
